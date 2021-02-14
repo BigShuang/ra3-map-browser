@@ -4,13 +4,9 @@ import math
 import platform
 import subprocess
 
-
-MAP_PATH = r"C:\Users\Administrator\AppData\Roaming\Red Alert 3\Maps"
-
-
 def get_all_maps(map_path):
     maps = []
-    dirs = os.listdir(MAP_PATH)
+    dirs = os.listdir(map_path)
     print(len(dirs))
     for dir in dirs:
         dir_path = os.path.join(map_path, dir)
@@ -29,6 +25,7 @@ def get_all_maps(map_path):
                         map_info["tga"] = os.path.join(dir_path, file)
 
             if "map" in map_info:
+
                 map_info["dir"] = dir_path
                 maps.append(map_info)
 
@@ -54,7 +51,16 @@ def get_page_maps(map_path, page=0, nums=12):
     return page_info
 
 
+def get_map_path():
+    map_relative_path = "AppData\Roaming\Red Alert 3\Maps"
+    home = os.path.expanduser('~')
+    map_path = os.path.join(home, map_relative_path)
+    return map_path
+
 if __name__ == '__main__':
+    map_path = get_map_path()
+    # print(r)
     pass
-    res = get_all_maps(MAP_PATH)
+    res = get_all_maps(map_path)
+
 

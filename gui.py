@@ -3,10 +3,10 @@ import tkinter.ttk as ttk
 # pip install pillow -i https://pypi.tuna.tsinghua.edu.cn/simple
 from board import MAP_BOARD
 import tkinter.font as tkFont
+from logic import get_map_path
 
-
-MAP_PATH = r"C:\Users\Administrator\AppData\Roaming\Red Alert 3\Maps"
-IMGSIZE = (250, 250)
+MAP_PATH = get_map_path()
+IMGSIZE = (200, 200)
 MAXWIDTH = 20
 CR = [5, 3]
 
@@ -19,11 +19,12 @@ font_2 = def_font.copy()
 font_2.config(size=22)
 
 page_index = tk.StringVar(win, "1")
+show_info = tk.StringVar(win, "")
 
 frame_top = tk.Frame(win)
 frame_top.grid(row=0)
 tk.Label(frame_top, text="双击地图图片，即可在文件浏览器中打开地图文件夹", font=font_2).grid()
-
+tk.Label(frame_top, textvariable=show_info, font=font_2, fg="#FF69B4").grid()
 
 map_board = MAP_BOARD(win, MAP_PATH, IMGSIZE, MAXWIDTH, CR)
 map_board.show_page_by_index(0)
@@ -42,7 +43,8 @@ page_label.grid(row=0, column=1)
 page_i_label.grid(row=0, column=2, padx=10)
 right_button.grid(row=0, column=3)
 
-map_board.bind_vars(page_index=page_index, left_button=left_button, right_button=right_button)
+map_board.bind_vars(page_index=page_index, left_button=left_button, right_button=right_button,
+                    show_info=show_info)
 map_board.refresh_vars()
 
 win.bind('<Left>', lambda e: map_board.prev_page())

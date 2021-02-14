@@ -2,6 +2,7 @@ import tkinter as tk
 from PIL import Image, ImageTk
 from logic import get_page_maps
 import subprocess
+import os
 
 # COLORS
 BLANK = (220, 220, 220)
@@ -43,8 +44,17 @@ class MAP_BOARD(tk.Frame):
             else:
                 self.vars["right_button"].config(state=tk.DISABLED)
 
+        if "show_info" in self.vars:
+            if os.path.exists(self.map_path):
+                self.vars["show_info"].set("")
+            else:
+                self.vars["show_info"].set("你的地图文件夹不存在或已丢失")
+
     def show_page_by_index(self, index):
-        self.page_info = get_page_maps(self.map_path, page=index, nums=self.r * self.c)
+        if os.path.exists(self.map_path):
+            self.page_info = get_page_maps(self.map_path, page=index, nums=self.r * self.c)
+        else:
+            self.page_info = {}
         for i in range(self.r * self.c):
             if i < len(self.page_info["maps"]):
                 map_info = self.page_info["maps"][i]
@@ -77,8 +87,18 @@ class MAP_BOARD(tk.Frame):
                 self.img_list[i] = Image.new("RGB", self.img_size, BLANK)
                 self.img_list[i] = ImageTk.PhotoImage(self.img_list[i])
 
-                self.label_list[i].config(image=self.img_list[i])
-                self.text_list[i].config(text="")
+                if self.label_list[i] is None:
+                    self.label_list[i] = tk.Label(self, image=self.img_list[i])
+                    self.label_list[i].grid(row=ri * 2, column=ci)
+                    self.label_list[i].bind("<Double-Button-1>", lambda e, i=i: self.click_map(i))
+                else:
+                    self.label_list[i].config(image=self.img_list[i])
+
+                if self.text_list[i] is None:
+                    self.text_list[i] = tk.Label(self, text="", width=self.max_width)
+                    self.text_list[i].grid(row=ri * 2 + 1, column=ci)
+                else:
+                    self.text_list[i].config(text="")
 
 
         self.refresh_vars()

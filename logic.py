@@ -7,7 +7,7 @@ import subprocess
 def get_all_maps(map_path):
     maps = []
     dirs = os.listdir(map_path)
-    print(len(dirs))
+    # print(len(dirs))
     for dir in dirs:
         dir_path = os.path.join(map_path, dir)
         if os.path.isdir(dir_path):

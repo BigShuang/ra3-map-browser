@@ -1,58 +1,67 @@
 import tkinter as tk
+import os
 import tkinter.ttk as ttk
-# pip install pillow -i https://pypi.tuna.tsinghua.edu.cn/simple
-from board import MAP_BOARD
+from board import MainBoard, SettingBoard, open_setting
 import tkinter.font as tkFont
-from logic import get_map_path
+import webbrowser
+
+from logic import get_map_path, get_setting
+
+from constants import *
 
 MAP_PATH = get_map_path()
-IMGSIZE = (200, 200)
-MAXWIDTH = 20
-CR = [5, 3]
-
+size, cr = get_setting(JSON_NAME)
 
 win = tk.Tk()
 win.title("ra3 map browser")
+
+if os.path.exists(ICON_PATH):
+    win.iconbitmap(ICON_PATH)
+
+win.resizable(width=False, height=False)
 
 def_font = tk.font.nametofont("TkDefaultFont")
 font_2 = def_font.copy()
 font_2.config(size=22)
 
 page_index = tk.StringVar(win, "1")
+nums_count = tk.IntVar(win, 0)
 show_info = tk.StringVar(win, "")
+# for frame 2
+map_path = tk.StringVar(win, value=MAP_PATH)
+setting_info = tk.StringVar(win, value="")
+
+main_board = MainBoard(win)
+main_board.pack()
+
+gvars = {}
+
+setting_board = SettingBoard(win)
+setting_board.set_vars(map_path=map_path, st_info=setting_info)
+
+gvars["sb"] = setting_board
+gvars["mb"] = main_board
+
+def view_author(event=None):
+    webbrowser.open("https://space.bilibili.com/149259132")
+
+def view_project(event=None):
+    webbrowser.open("https://github.com/BigShuang/ra3-map-browser")
 
 try:
-    frame_top = tk.Frame(win)
-    frame_top.grid(row=0)
-    tk.Label(frame_top, text="双击地图图片，即可在文件浏览器中打开地图文件夹", font=font_2).grid()
-    tk.Label(frame_top, textvariable=show_info, font=font_2, fg="#FF69B4").grid()
+    main_board.set_setting(map_path=MAP_PATH, size=size, cr=cr)
+    main_board.set_vars(font_2=font_2, page_index=page_index, show_info=show_info, nums_count=nums_count)
+    main_board.init()
 
-    map_board = MAP_BOARD(win, MAP_PATH, IMGSIZE, MAXWIDTH, CR)
-    map_board.show_page_by_index(0)
-    map_board.grid(row=1)
+    menu = tk.Menu(win)
+    win.config(menu=menu)
 
-    frame_bottom = tk.Frame(win)
-    frame_bottom.grid(row=2)
+    menu.add_cascade(label="设置", command=lambda : open_setting(gvars))
+    menu.add_separator()
+    menu.add_cascade(label="查看作者", command=view_author)
+    menu.add_cascade(label="查看项目", command=view_project)
 
-    left_button = ttk.Button(frame_bottom, text="上一页", command=map_board.prev_page)
-    page_label = tk.Label(frame_bottom, text="当前页面: ")
-    page_i_label = tk.Label(frame_bottom, textvariable=page_index)
-    right_button = ttk.Button(frame_bottom, text="下一页", command=map_board.next_page)
-
-    left_button.grid(row=0, column=0)
-    page_label.grid(row=0, column=1)
-    page_i_label.grid(row=0, column=2, padx=10)
-    right_button.grid(row=0, column=3)
-
-    map_board.bind_vars(page_index=page_index, left_button=left_button, right_button=right_button,
-                        show_info=show_info)
-    map_board.refresh_vars()
-
-    win.bind('<Left>', lambda e: map_board.prev_page())
-    win.bind('<Right>', lambda e: map_board.next_page())
 except Exception as e:
     show_info.set(str(e))
-
-
 
 win.mainloop()

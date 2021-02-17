@@ -1,8 +1,8 @@
-import tkinter as tk
 import os
 import math
-import platform
-import subprocess
+import json
+import datetime
+from constants import SIZE, CR, IMG_SIZE, ROW_RANGE, COLUMN_RANGE
 
 def get_all_maps(map_path):
     maps = []
@@ -45,8 +45,8 @@ def get_page_maps(map_path, page=0, nums=12):
         "pages": math.ceil(len(all_maps)/nums),
         "prev": page > 0,
         "maps": all_maps[page*nums:(page+1)*nums],
-        "next": (page+1)*nums < len(all_maps)
-
+        "next": (page+1)*nums < len(all_maps),
+        "total": len(all_maps)
     }
     return page_info
 
@@ -56,6 +56,33 @@ def get_map_path():
     home = os.path.expanduser('~')
     map_path = os.path.join(home, map_relative_path)
     return map_path
+
+
+def get_setting(setting_path):
+    if os.path.exists(setting_path):
+        try:
+            with open(setting_path, "r") as f:
+                data = json.load(f)
+            if "size" in data and "c" in data and "r" in data:
+                size = data["size"]
+                c = data["c"]
+                r = data["r"]
+                if size in IMG_SIZE and ROW_RANGE[0] <= r <= ROW_RANGE[1]\
+                        and COLUMN_RANGE[0] <= c <= COLUMN_RANGE[1]:
+                    return size, (c, r)
+
+        except Exception as e:
+            print(e)
+            log_time = datetime.datetime.now()
+            log_str = str(log_time)
+            for c in "- :.":
+                log_str = log_str.replace(c, "_")
+            with open("log_%s.txt"%log_str, "w") as f:
+                f.write("get_setting errors:\n")
+                f.write(str(e))
+
+    return SIZE, CR
+
 
 if __name__ == '__main__':
     map_path = get_map_path()

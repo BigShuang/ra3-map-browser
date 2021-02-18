@@ -4,14 +4,12 @@ import json
 import datetime
 from constants import SIZE, CR, IMG_SIZE, ROW_RANGE, COLUMN_RANGE
 
-def get_all_maps(map_path):
+def get_all_maps(map_path, filter=""):
     maps = []
     dirs = os.listdir(map_path)
-    # print(len(dirs))
     for dir in dirs:
         dir_path = os.path.join(map_path, dir)
-        if os.path.isdir(dir_path):
-            # print(dir)
+        if os.path.isdir(dir_path) and filter in dir:
             map_info = {}
             files = os.listdir(dir_path)
             for file in files:
@@ -32,14 +30,14 @@ def get_all_maps(map_path):
     return maps
 
 
-def get_page_maps(map_path, page=0, nums=12):
+def get_page_maps(map_path, page=0, nums=12, filter=""):
     """
     得到界面某一页将要展示的地图信息
     :param page: 第几页
     :param nums: 每页展示地图数
     :return: page info. A dictionary
     """
-    all_maps = get_all_maps(map_path)
+    all_maps = get_all_maps(map_path, filter=filter)
     page_info = {
         "page": page,
         "pages": math.ceil(len(all_maps)/nums),

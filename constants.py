@@ -9,6 +9,13 @@ MAX_WIDTH = {
     "L": 25,  # large
 }
 
+LINES = {
+    "S": 3,  # small
+    "M": 2,  # medium
+    "L": 2,  # large
+}
+
+
 SIZE = "S"
 CR = [6, 3]
 
@@ -19,5 +26,11 @@ COLUMN_RANGE = [4, 10]
 RANGE_WIDTH = 50
 # COLORS
 BLANK = (240, 240, 240)
-
+TEXT_BG = "gray95"
 ICON_PATH = "ra3.ico"
+
+SUGGEST = [
+    "4v4",
+    "8-p",
+    "defence"
+]

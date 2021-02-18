@@ -15,21 +15,29 @@ size, cr = get_setting(JSON_NAME)
 win = tk.Tk()
 win.title("ra3 map browser")
 
-if os.path.exists(ICON_PATH):
+if ICON_PATH and os.path.exists(ICON_PATH):
     win.iconbitmap(ICON_PATH)
 
 win.resizable(width=False, height=False)
 
-def_font = tk.font.nametofont("TkDefaultFont")
-font_2 = def_font.copy()
-font_2.config(size=22)
 
-page_index = tk.StringVar(win, "1")
-nums_count = tk.IntVar(win, 0)
-show_info = tk.StringVar(win, "")
-# for frame 2
-map_path = tk.StringVar(win, value=MAP_PATH)
-setting_info = tk.StringVar(win, value="")
+def_font = tk.font.nametofont("TkDefaultFont")
+font_1 = def_font.copy()
+font_1.config(size=20)
+
+
+vars ={
+    "page_index" : tk.StringVar(win, "1"),
+    "nums_count" : tk.IntVar(win, 0),
+    "show_info" : tk.StringVar(win, ""),
+    # for frame 2
+    "map_path" : tk.StringVar(win, value=MAP_PATH),
+    "setting_info" : tk.StringVar(win, value=""),
+    "search_word": tk.StringVar(win, value=""),
+
+    "search_val": ""
+}
+
 
 main_board = MainBoard(win)
 main_board.pack()
@@ -37,7 +45,7 @@ main_board.pack()
 gvars = {}
 
 setting_board = SettingBoard(win)
-setting_board.set_vars(map_path=map_path, st_info=setting_info)
+setting_board.set_vars(vars)
 
 gvars["sb"] = setting_board
 gvars["mb"] = main_board
@@ -48,9 +56,10 @@ def view_author(event=None):
 def view_project(event=None):
     webbrowser.open("https://github.com/BigShuang/ra3-map-browser")
 
-try:
-    main_board.set_setting(map_path=MAP_PATH, size=size, cr=cr)
-    main_board.set_vars(font_2=font_2, page_index=page_index, show_info=show_info, nums_count=nums_count)
+if True:
+# try:
+    main_board.set_setting(map_path=MAP_PATH, size=size, cr=cr, font_1=font_1)
+    main_board.set_vars_main(vars)
     main_board.init()
 
     menu = tk.Menu(win)
@@ -61,7 +70,8 @@ try:
     menu.add_cascade(label="查看作者", command=view_author)
     menu.add_cascade(label="查看项目", command=view_project)
 
-except Exception as e:
-    show_info.set(str(e))
+# except Exception as e:
+#     print(e)
+#     vars["show_info"].set(str(e))
 
 win.mainloop()

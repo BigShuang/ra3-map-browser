@@ -10,12 +10,67 @@ from constants import *
 from logic import get_page_maps
 
 
+class ToolBar(tk.Frame):
+    def __init__(self, master, vars, **kwargs):
+        super().__init__(master, **kwargs)
+
+        self.vars = vars
+        self.search = ""
+
+        left_frame = tk.Frame(self)
+        left_frame.pack(side= tk.LEFT)
+
+        center_frame = tk.Frame(self)
+        center_frame.pack(side= tk.RIGHT)
+
+        search_entry = tk.Entry(left_frame, textvariable=self.vars["search_word"])
+        search_button = ttk.Button(left_frame, text="搜索", width=6)
+        # kind_selector = ttk.Button(left_frame, text="常用", width=6)
+        search_reset = ttk.Button(left_frame, text="重置", width=6)
+
+        left_button = ttk.Button(center_frame, text="上一页")
+        page_label = tk.Label(center_frame, text="当前页面: ")
+        page_i_label = tk.Label(center_frame, textvariable=self.vars["page_index"])
+        page_label2 = tk.Label(center_frame, text="总地图数量: ")
+        nums_label = tk.Label(center_frame, textvariable=self.vars["nums_count"])
+        right_button = ttk.Button(center_frame, text="下一页")
+
+        search_entry.grid(row=0, column=0)
+        search_button.grid(row=0, column=1, padx=5)
+        # kind_selector.grid(row=0, column=2)
+        search_reset.grid(row=0, column=3, padx=5)
+
+        left_button.grid(row=0, column=0)
+        page_label.grid(row=0, column=1)
+        page_i_label.grid(row=0, column=2, padx=10)
+        page_label2.grid(row=0, column=3)
+        nums_label.grid(row=0, column=4, padx=10)
+        right_button.grid(row=0, column=5)
+
+        self.widgets = {
+            "left": left_button,
+            "right": right_button,
+            "search": search_button,
+            "reset": search_reset,
+
+            "enter_search":  search_entry
+        }
+
+    def bind_funcs(self, **funcs):
+        for k in funcs:
+            if k.startswith("enter") and k in self.widgets:
+                self.widgets[k].bind("<Return>", funcs[k])
+            elif k in self.widgets:
+                self.widgets[k].config(command=funcs[k])
+
+
+
+
 class MapBoard(tk.Frame):
-    def __init__(self, master, map_path, img_size, max_width, cr):
+    def __init__(self, master, map_path, size, cr):
         super().__init__(master)
         self.map_path = map_path
-        self.img_size = img_size
-        self.max_width = max_width
+        self.size = size
         self.c = cr[0]
         self.r = cr[1]
 
@@ -26,20 +81,17 @@ class MapBoard(tk.Frame):
 
         self.vars = {}
 
-    def bind_vars(self, **kwargs):
-        for key in kwargs:
-            self.vars[key] = kwargs[key]
+    def set_vars_map(self, vars):
+        self.vars = vars
 
     def refresh_with_setting(self, **kwargs):
         """
-        :param kwargs: dict, keys:map_path, img_size, max_width, cr
+        :param kwargs: dict, keys:map_path, size, cr,
         """
         if "map_path" in kwargs:
             self.map_path = kwargs["map_path"]
-        if "img_size" in kwargs:
-            self.img_size = kwargs["img_size"]
-        if "max_width" in kwargs:
-            self.max_width = kwargs["max_width"]
+        if "size" in kwargs:
+            self.size = kwargs["size"]
         if "cr" in kwargs:
             self.c, self.r = kwargs["cr"]
 
@@ -52,7 +104,6 @@ class MapBoard(tk.Frame):
         self.text_list = [None for _ in range(self.r * self.c)]
         self.page_info = get_page_maps(self.map_path, page=0, nums=self.r * self.c)
         self.show_page_by_index(0)
-
 
     def refresh_vars(self):
         if "page_index" in self.vars:
@@ -82,7 +133,8 @@ class MapBoard(tk.Frame):
 
     def show_page_by_index(self, index):
         if os.path.exists(self.map_path):
-            self.page_info = get_page_maps(self.map_path, page=index, nums=self.r * self.c)
+            key = self.vars["search_val"]
+            self.page_info = get_page_maps(self.map_path, page=index, nums=self.r * self.c, filter=key)
         else:
             self.page_info = {}
         for i in range(self.r * self.c):
@@ -96,9 +148,9 @@ class MapBoard(tk.Frame):
                 elif "tga" in map_info:
                     self.img_list[i] = Image.open(map_info["tga"])
                 else:
-                    self.img_list[i] = Image.new("RGB", self.img_size, (0, 0, 0))
+                    self.img_list[i] = Image.new("RGB", IMG_SIZE[self.size], (0, 0, 0))
 
-                self.img_list[i] = self.img_list[i].resize(self.img_size)
+                self.img_list[i] = self.img_list[i].resize(IMG_SIZE[self.size])
                 self.img_list[i] = ImageTk.PhotoImage(self.img_list[i])
 
                 if self.label_list[i] is None:
@@ -109,12 +161,20 @@ class MapBoard(tk.Frame):
                     self.label_list[i].config(image=self.img_list[i])
 
                 if self.text_list[i] is None:
-                    self.text_list[i] = tk.Label(self, text=map_info["map"][:self.max_width], width=self.max_width)
+                    tr = LINES[self.size]
+                    # self.text_list[i] = tk.Label(self, text=map_info["map"][:self.max_width], width=self.max_width)
+                    self.text_list[i] = tk.Text(self, width=MAX_WIDTH[self.size], height=tr, background=TEXT_BG)
+                    self.text_list[i].insert(tk.END, map_info["map"])
                     self.text_list[i].grid(row=ri * 2 + 1, column=ci)
+                    self.text_list[i].configure(state='disabled')
                 else:
-                    self.text_list[i].config(text=map_info["map"][:self.max_width])
+                    self.text_list[i].configure(state='normal')
+                    self.text_list[i].delete("1.0", "end")
+                    self.text_list[i].insert(tk.END, map_info["map"])
+                    self.text_list[i].configure(state='disabled')
             else:
-                self.img_list[i] = Image.new("RGB", self.img_size, BLANK)
+                # 最后一页的空白位置
+                self.img_list[i] = Image.new("RGB", IMG_SIZE[self.size], BLANK)
                 self.img_list[i] = ImageTk.PhotoImage(self.img_list[i])
 
                 if self.label_list[i] is None:
@@ -125,11 +185,14 @@ class MapBoard(tk.Frame):
                     self.label_list[i].config(image=self.img_list[i])
 
                 if self.text_list[i] is None:
-                    self.text_list[i] = tk.Label(self, text="", width=self.max_width)
+                    tr = LINES[self.size]
+                    self.text_list[i] = tk.Text(self, width=MAX_WIDTH[self.size], height=tr, background=TEXT_BG)
                     self.text_list[i].grid(row=ri * 2 + 1, column=ci)
+                    self.text_list[i].configure(state='disabled')
                 else:
-                    self.text_list[i].config(text="")
-
+                    self.text_list[i].configure(state='normal')
+                    self.text_list[i].delete("1.0", "end")
+                    self.text_list[i].configure(state='disabled')
 
         self.refresh_vars()
 
@@ -137,6 +200,17 @@ class MapBoard(tk.Frame):
         if "maps" in self.page_info and index <len(self.page_info["maps"]):
             map_info = self.page_info["maps"][index]
             subprocess.Popen(r'explorer /select,"%s"' % map_info["dir"])
+
+    def search(self, event=None):
+        if self.vars["search_val"] != self.vars["search_word"].get():
+            self.vars["search_val"] = self.vars["search_word"].get()
+            self.show_page_by_index(0)
+
+    def reset_search(self):
+        self.vars["search_word"].set("")
+        self.vars["search_val"] = ""
+
+        self.show_page_by_index(0)
 
     def prev_page(self):
         if self.page_info.get("prev"):
@@ -157,53 +231,36 @@ class MainBoard(tk.Frame):
 
     def set_setting(self, **setting):
         """
-        :param setting: dict, keys: map_path, size, cr
+        :param setting: dict, keys: map_path, size, cr, font
         """
         self.setting.update(setting)
 
-
-    def set_vars(self, **vars):
-        """
-        :param vars: dict, keys: font_2, page_index, show_info, nums_count
-        """
-        self.vars.update(vars)
+    def set_vars_main(self, vars):
+        self.vars = vars
 
     def refresh(self):
         self.map_board.refresh_with_setting(
-            map_path=self.setting["map_path"], img_size=IMG_SIZE[self.setting["size"]],
-            max_width=MAX_WIDTH[self.setting["size"]], cr=self.setting["cr"])
+            map_path=self.setting["map_path"], size=self.setting["size"], cr=self.setting["cr"])
 
     def init(self):
-        frame_top = tk.Frame(self)
-        frame_top.grid(row=0)
-        tk.Label(frame_top, text="双击地图图片，即可在文件浏览器中打开地图文件夹", font=self.vars["font_2"]).grid()
-        tk.Label(frame_top, textvariable=self.vars["show_info"], font=self.vars["font_2"], fg="#FF69B4").grid()
+        frame_top = ToolBar(self, self.vars)
+        frame_top.pack(fill="x")
 
-        self.map_board = MapBoard(self, self.setting["map_path"], IMG_SIZE[self.setting["size"]],
-                              MAX_WIDTH[self.setting["size"]], self.setting["cr"])
+        self.map_board = MapBoard(self, self.setting["map_path"], self.setting["size"], self.setting["cr"])
+        self.map_board.set_vars_map(self.vars)
         self.map_board.show_page_by_index(0)
-        self.map_board.grid(row=1)
+        self.map_board.pack()
 
         frame_bottom = tk.Frame(self)
-        frame_bottom.grid(row=2)
+        frame_bottom.pack()
+        tk.Label(frame_bottom, text="双击地图图片，即可在文件浏览器中打开地图文件夹", font=self.setting["font_1"]).grid()
+        tk.Label(frame_bottom, textvariable=self.vars["show_info"], font=self.setting["font_1"], fg="#FF69B4").grid()
 
-        left_button = ttk.Button(frame_bottom, text="上一页", command=self.map_board.prev_page)
-        page_label = tk.Label(frame_bottom, text="当前页面: ")
-        page_i_label = tk.Label(frame_bottom, textvariable=self.vars["page_index"])
-        page_label2 = tk.Label(frame_bottom, text="总地图数量: ")
-        nums_label = tk.Label(frame_bottom, textvariable=self.vars["nums_count"])
-        right_button = ttk.Button(frame_bottom, text="下一页", command=self.map_board.next_page)
-
-        left_button.grid(row=0, column=0)
-        page_label.grid(row=0, column=1)
-        page_i_label.grid(row=0, column=2, padx=10)
-        page_label2.grid(row=0, column=3)
-        nums_label.grid(row=0, column=4, padx=10)
-        right_button.grid(row=0, column=5)
-
-        self.map_board.bind_vars(page_index=self.vars["page_index"], left_button=left_button, right_button=right_button,
-                            show_info=self.vars["show_info"], nums_count=self.vars["nums_count"])
         self.map_board.refresh_vars()
+
+        frame_top.bind_funcs(left=self.map_board.prev_page, right=self.map_board.next_page,
+                             search=self.map_board.search, reset=self.map_board.reset_search,
+                             enter_search=self.map_board.search)
 
         self.master.bind('<Left>', lambda e: self.map_board.prev_page())
         self.master.bind('<Right>', lambda e: self.map_board.next_page())
@@ -226,7 +283,7 @@ class SettingBoard(tk.Frame):
         self.local_vars["c"].set(main_board.setting["cr"][0])
         self.local_vars["r"].set(main_board.setting["cr"][1])
 
-    def set_vars(self, **vars):
+    def set_vars(self, vars):
         """
         :param vars: dict, keys: map_path(StringVar), setting_info(StringVar)
         """
@@ -239,7 +296,7 @@ class SettingBoard(tk.Frame):
         ROW1.pack()
         ROW2.pack()
         ROW3.pack()
-        label0 = ttk.Label(ROW1, textvariable=self.vars["st_info"], foreground="red")
+        label0 = ttk.Label(ROW1, textvariable=self.vars["show_info"], foreground="red")
         label0.grid(row=0, columnspan=2, pady=10)
 
         b0 = ttk.Button(ROW1, text="修改地图文件夹", command=self.select_dir)

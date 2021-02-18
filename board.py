@@ -25,7 +25,8 @@ class ToolBar(tk.Frame):
 
         search_entry = tk.Entry(left_frame, textvariable=self.vars["search_word"])
         search_button = ttk.Button(left_frame, text="搜索", width=6)
-        # kind_selector = ttk.Button(left_frame, text="常用", width=6)
+        kind_selector = ttk.Combobox(left_frame, width=15, values=SUGGEST,
+                                     textvariable=self.vars["kind_selector"])
         search_reset = ttk.Button(left_frame, text="重置", width=6)
 
         left_button = ttk.Button(center_frame, text="上一页")
@@ -37,7 +38,7 @@ class ToolBar(tk.Frame):
 
         search_entry.grid(row=0, column=0)
         search_button.grid(row=0, column=1, padx=5)
-        # kind_selector.grid(row=0, column=2)
+        kind_selector.grid(row=0, column=2)
         search_reset.grid(row=0, column=3, padx=5)
 
         left_button.grid(row=0, column=0)
@@ -53,16 +54,18 @@ class ToolBar(tk.Frame):
             "search": search_button,
             "reset": search_reset,
 
-            "enter_search":  search_entry
+            "return_search":  search_entry,
+            "select_search": kind_selector
         }
 
     def bind_funcs(self, **funcs):
         for k in funcs:
-            if k.startswith("enter") and k in self.widgets:
+            if k.startswith("return") and k in self.widgets:
                 self.widgets[k].bind("<Return>", funcs[k])
+            elif k.startswith("select") and k in self.widgets:
+                self.widgets[k].bind("<<ComboboxSelected>>", funcs[k])
             elif k in self.widgets:
                 self.widgets[k].config(command=funcs[k])
-
 
 
 
@@ -212,6 +215,12 @@ class MapBoard(tk.Frame):
 
         self.show_page_by_index(0)
 
+    def select_search(self, event=None):
+        val = self.vars["kind_selector"].get()
+        if val in SUGGEST and val != SUGGEST[0]:
+            self.vars["search_val"] = val
+            self.show_page_by_index(0)
+
     def prev_page(self):
         if self.page_info.get("prev"):
             prev_index = self.page_info["page"] - 1
@@ -260,7 +269,7 @@ class MainBoard(tk.Frame):
 
         frame_top.bind_funcs(left=self.map_board.prev_page, right=self.map_board.next_page,
                              search=self.map_board.search, reset=self.map_board.reset_search,
-                             enter_search=self.map_board.search)
+                             return_search=self.map_board.search, select_search=self.map_board.select_search)
 
         self.master.bind('<Left>', lambda e: self.map_board.prev_page())
         self.master.bind('<Right>', lambda e: self.map_board.next_page())

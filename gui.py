@@ -33,7 +33,9 @@ vars ={
     # for frame 2
     "map_path" : tk.StringVar(win, value=MAP_PATH),
     "setting_info" : tk.StringVar(win, value=""),
+
     "search_word": tk.StringVar(win, value=""),
+    "kind_selector": tk.StringVar(win, value=SUGGEST[0]),
 
     "search_val": ""
 }

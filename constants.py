@@ -30,6 +30,7 @@ TEXT_BG = "gray95"
 ICON_PATH = "ra3.ico"
 
 SUGGEST = [
+    "-- 推荐搜索词 --",
     "4v4",
     "8-p",
     "defence"

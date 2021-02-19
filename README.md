@@ -60,10 +60,6 @@ pip install pillow -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 
-
-
-
-
 #### py打包exe(命令行中执行)
 
 先安装`pyinstaller`

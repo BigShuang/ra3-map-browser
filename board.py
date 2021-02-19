@@ -1,13 +1,16 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import filedialog
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageFile
 import subprocess
 import os
 import json
 
 from constants import *
 from logic import get_page_maps
+
+
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 class ToolBar(tk.Frame):
@@ -153,6 +156,9 @@ class MapBoard(tk.Frame):
                 else:
                     self.img_list[i] = Image.new("RGB", IMG_SIZE[self.size], (0, 0, 0))
 
+                # print(map_info["dir"])
+                # if map_info["dir"] == "D:/Documents/Red Alert 3/other\(as)kuzhanmaqinuo1.6":
+                #     print("debug")
                 self.img_list[i] = self.img_list[i].resize(IMG_SIZE[self.size])
                 self.img_list[i] = ImageTk.PhotoImage(self.img_list[i])
 
@@ -202,7 +208,10 @@ class MapBoard(tk.Frame):
     def click_map(self, index):
         if "maps" in self.page_info and index <len(self.page_info["maps"]):
             map_info = self.page_info["maps"][index]
-            subprocess.Popen(r'explorer /select,"%s"' % map_info["dir"])
+            dir_path = map_info["dir"]
+
+            dir_path= dir_path.replace("/", "\\")
+            subprocess.Popen(r'explorer /select,"%s"' % dir_path)
 
     def search(self, event=None):
         if self.vars["search_val"] != self.vars["search_word"].get():
@@ -369,9 +378,9 @@ class SettingBoard(tk.Frame):
                 self.vars["map_path"].set(dir)
                 print(dir)
 
-            self.vars["st_info"].set("")
+            self.vars["show_info"].set("")
         except Exception as e:
-            self.vars["st_info"].set(str(e))
+            self.vars["show_info"].set(str(e))
 
 def open_setting(gvars):
     gvars["mb"].pack_forget()

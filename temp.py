@@ -1,8 +1,14 @@
 import tkinter as tk
-parent_widget = tk.Tk()
-scale_widget = tk.Scale(parent_widget, from_=1, to=5, length=200,
-                             orient=tk.HORIZONTAL)
-scale_widget.set(3)
-scale_widget.pack()
+from PIL import Image
 
-parent_widget.mainloop()
+from PIL import ImageFile
+
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+
+ImageFile.MAXBLOCK = 800 * 800
+
+img_p = "D:\Documents\Red Alert 3\other\(as)maqinuo1.6ee\(as)maqinuo1.6ee_art.tga"
+
+img = Image.open(img_p)
+img.resize((200, 200))
+img.show()
